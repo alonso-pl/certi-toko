@@ -1,0 +1,16 @@
+{
+  "canisters": {
+    "motoko_bootcamp-projetc_lite-backend": {
+      "main": "src/motoko_bootcamp-projetc_lite-backend/main.mo",
+      "type": "motoko"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
