@@ -339,6 +339,86 @@ actor {
     };
   };
 
+  // public function to create a new certificate id
+  private func new_certificate_id() : Nat {
+    certificate_id += 1;
+    return certificate_id;
+  };
+
+  //public function to create a new certificate
+  public func new_certificate(student_id: Nat, course_id: Nat, date: Types.Date) : async Text {
+    let student = students.get(Nat.toText(student_id));
+    let course = courses.get(Nat.toText(course_id));
+    switch (student) {
+      case (null) {
+        return "Student not found";
+      };
+      case (?student) {
+        switch (course) {
+          case (null) {
+            return "Course not found";
+          };
+          case (?course) {
+            let new_certificate: Types.Certificate = {
+              id = new_certificate_id();
+              student = student;
+              course = course;
+              date = date;
+            };
+            certificates.put(Nat.toText(new_certificate.id), new_certificate);
+            return "New certificate added";
+          };
+        };
+      };
+    };
+  };
+
+    // public function to get a certificate by id
+  public query func get_certificate(id: Nat) : async ?Types.Certificate {
+    switch (certificates.get(Nat.toText(id))) {
+      case (null) {
+        Debug.print("Certificate not found");
+        return null; };
+      case (_certificate) { return certificates.get(Nat.toText(id)); };
+    };
+  };
+
+  // public function to update certificate by id
+  public func update_certificate(id: Nat, student_id: Nat, course_id: Nat, date: Types.Date) : async Text {
+    let certificate = certificates.get(Nat.toText(id));
+    switch (certificate) {
+      case (null) {
+        return "Certificate not found";
+      };
+      case (?certificate) {
+        let student = students.get(Nat.toText(student_id));
+        switch (student) {
+          case (null) {
+            return "Student not found";
+          };
+          case (?student) {
+            let course = courses.get(Nat.toText(course_id));
+            switch (course) {
+              case (null) {
+                return "Course not found";
+              };
+              case (?course) {
+                let updated_certificate: Types.Certificate = {
+                  id = certificate.id;
+                  student = student;
+                  course = course;
+                  date = date;
+                };
+                certificates.put(Nat.toText(updated_certificate.id), updated_certificate);
+                return "Certificate updated";
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+
   // Test values
   public func test_values() : async Text {
     
@@ -359,6 +439,8 @@ actor {
     let _enrollet5 = await new_enrollment(2, 2, "Approved");
     let _enrollet6 = await new_enrollment(3, 2, "Approved");
     let _enrollet7 = await new_enrollment(3, 3, "active");
+    let _certificate1 = await new_certificate(1, 1, {year = 2021; month = 10; day = 10});
+    let _certificate2 = await new_certificate(2, 1, {year = 2021; month = 10; day = 10});
 
     return "Test values added";
   };
