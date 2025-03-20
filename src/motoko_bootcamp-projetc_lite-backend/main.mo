@@ -3,6 +3,7 @@ import HashMap "mo:base/HashMap";
 import Text "mo:base/Text";
 import Nat "mo:base/Nat";
 import Debug "mo:base/Debug";
+import Array "mo:base/Array";
 actor {
   
   let students = HashMap.HashMap<Text, Types.Student>(0, Text.equal, Text.hash);
@@ -70,11 +71,12 @@ actor {
         Debug.print("Student not found");
         return "Student not found"; };
       case (_) {
+        //Delete all enrollments from this student
+        let _ = await delete_enrollment_by_student_id(id);
         ignore students.remove(Nat.toText(id));
         return "Student deleted"; };
     };
   };
-
 
   // private function to generate a new teacher id
   private func new_teacher_id() : Nat {
@@ -204,8 +206,136 @@ actor {
         Debug.print("Course not found");
         return "Course not found"; };
       case (_) {
+        //Delete all enrollments from this course
+        let _ = await delete_enrollment_by_course_id(id);
         ignore courses.remove(Nat.toText(id));
         return "Course deleted"; };
+    };
+  };
+
+  // public function to create a new enrollment
+  public func new_enrollment(student_id: Nat, course_id: Nat, status: Text) : async Text {
+    let student = students.get(Nat.toText(student_id));
+    let course = courses.get(Nat.toText(course_id));
+    switch (student) {
+      case (null) {
+        return "Student not found";
+      };
+      case (?student) {
+        switch (course) {
+          case (null) {
+            return "Course not found";
+          };
+          case (?course) {
+            let new_enrollment: Types.Enrollment = {
+              student = student;
+              course = course;
+              status = status;
+            };
+            enrollments.put(Nat.toText(student.id) # "-" # Nat.toText(course.id), new_enrollment);
+            return "New enrollment added";
+          };
+        };
+      };
+    };
+  };
+
+  //public function to update a status enrollment by student_id and course_name
+  public func update_enrollment(student_id: Nat, course_id: Nat, status: Text) : async Text {
+    let enrollment = enrollments.get(Nat.toText(student_id) # "-" # Nat.toText(course_id));
+    switch (enrollment) {
+      case (null) {
+        return "Enrollment not found";
+      };
+      case (?enrollment) {
+        let updated_enrollment: Types.Enrollment = {
+          student = enrollment.student;
+          course = enrollment.course;
+          status = status;
+        };
+        enrollments.put(Nat.toText(enrollment.student.id) # "-" # Nat.toText(enrollment.course.id), updated_enrollment);
+        return "Enrollment updated";
+      };
+    };
+  };
+  
+  // public function to get a all courses by student id
+  public query func get_courses_by_student_id(student_id: Nat) : async [Types.Course] {
+    let student = students.get(Nat.toText(student_id));
+    switch (student) {
+      case (null) {
+        Debug.print("Student not found");
+        return [];
+      };
+      case (?student) {
+        let student_enrollments = enrollments.vals();
+        var student_courses: [Types.Course] = [];
+        for (enrollment in student_enrollments) {
+          if (enrollment.student.id == student.id) {
+            student_courses := Array.append(student_courses, [enrollment.course]);
+          };
+        };
+        return student_courses;
+      };
+    };
+  };
+
+  // public function to get a all students by course id
+  public query func get_students_by_course_id(course_id: Nat) : async [Types.Student] {
+    let course = courses.get(Nat.toText(course_id));
+    switch (course) {
+      case (null) {
+        Debug.print("Course not found");
+        return [];
+      };
+      case (?course) {
+        let course_enrollments = enrollments.vals();
+        var course_students: [Types.Student] = [];
+        for (enrollment in course_enrollments) {
+          if (enrollment.course.id == course.id) {
+            course_students := Array.append(course_students, [enrollment.student]);
+          };
+        };
+        return course_students;
+      };
+    };
+  };
+
+  // public function to delete a all enrollment by student_id
+  public func delete_enrollment_by_student_id(student_id: Nat) : async Text {
+    let student = students.get(Nat.toText(student_id));
+    switch (student) {
+      case (null) {
+        return "Student not found";
+      };
+      case (?student) {
+        let student_enrollments = enrollments.vals();
+        for (enrollment in student_enrollments) {
+          if (enrollment.student.id == student.id) {
+            ignore enrollments.remove(Nat.toText(enrollment.student.id) # "-" # Nat.toText(enrollment.course.id));
+          };
+        };
+        return "All enrollments from " # student.first_name # " " # student.last_name # "deleted";
+      };
+    };
+  };
+
+  // public function to delete a all enrollment by course_id
+  public func delete_enrollment_by_course_id(course_id: Nat) : async Text {
+    let course = courses.get(Nat.toText(course_id));
+    switch (course) {
+      case (null) {
+        return "Course not found";
+      };
+      case (?course) {
+        let course_enrollments = enrollments.vals();
+        for (enrollment in course_enrollments) {
+          if (enrollment.course.id == course.id) {
+            ignore enrollments.remove(Nat.toText(enrollment.student.id) # "-" # Nat.toText(enrollment.course.id));
+          };
+        };
+        return "All enrollments from " # course.name # "deleted";
+      };
     };
   };
 
@@ -221,6 +351,15 @@ actor {
     let _teacher3 = await new_teacher("Alice", "Smith");
     let _course1 = await new_course("Math", 1, 40);
     let _course2 = await new_course("History", 2, 30);
+    let _course3 = await new_course("Science", 3, 50);
+    let _enrollet1 = await new_enrollment(1, 1, "active");
+    let _enrollet2 = await new_enrollment(2, 1, "Not Approved");
+    let _enrollet3 = await new_enrollment(3, 1, "Approved");
+    let _enrollet4 = await new_enrollment(1, 2, "active");
+    let _enrollet5 = await new_enrollment(2, 2, "Approved");
+    let _enrollet6 = await new_enrollment(3, 2, "Approved");
+    let _enrollet7 = await new_enrollment(3, 3, "active");
+
     return "Test values added";
   };
 };
