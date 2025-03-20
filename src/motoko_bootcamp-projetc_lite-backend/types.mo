@@ -15,12 +15,13 @@ module{
         id: Nat;
         name: Text;
         teacher: Teacher;
+        hours: Nat;
     };
 
     public type Enrollment = {
-        id: Nat;
         student: Student;
         course: Course;
+        status: Text;
     };
     public type Certificate = {
         id: Nat;
