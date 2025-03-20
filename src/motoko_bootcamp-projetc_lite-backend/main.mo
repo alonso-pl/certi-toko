@@ -6,9 +6,13 @@ import Debug "mo:base/Debug";
 actor {
   
   let students = HashMap.HashMap<Text, Types.Student>(0, Text.equal, Text.hash);
+  let teachers = HashMap.HashMap<Text, Types.Teacher>(0, Text.equal, Text.hash);
 
   // convert to stable memory when implement [mops - map]
   var student_id : Nat = 0;
+  var teacher_id : Nat = 0;
+
+  
   // private function to generate a new student id
   private func next_student_id() : Nat {
     student_id += 1;
@@ -66,4 +70,63 @@ actor {
         return "Student deleted"; };
     };
   };
+
+
+  // private function to generate a new teacher id
+  private func next_teacher_id() : Nat {
+    teacher_id += 1;
+    return teacher_id;
+  };
+  // public function to create a new Teacher
+  public func new_teacher(first_name: Text, last_name: Text) : async Text {
+    let new_teacher: Types.Teacher = {
+      id = next_teacher_id();
+      first_name = first_name;
+      last_name = last_name;
+    };
+    teachers.put(Nat.toText(new_teacher.id), new_teacher);
+    return "New teacher added whit ID: " # Nat.toText(new_teacher.id);
+  };
+
+  // public function to get a teacher by id
+  public query func get_teacher(id: Nat) : async ?Types.Teacher {
+    switch (teachers.get(Nat.toText(id))) {
+      case (null) {
+        Debug.print("Teacher not found");
+        return null; };
+      case (_teacher) { return teachers.get(Nat.toText(id)); };
+    };
+  };
+
+  // public function to update a teacher by id
+  public func update_teacher(id: Nat, first_name: Text, last_name: Text) : async Text {
+    let teacher = teachers.get(Nat.toText(id));
+    switch (teacher) {
+      case (null) {
+        return "Teacher not found";
+      };
+      case (?teacher) {
+        let updated_teacher: Types.Teacher = {
+          id = teacher.id;
+          first_name = if (first_name == "") teacher.first_name else first_name;
+          last_name = if (last_name == "") teacher.last_name else last_name;
+        };
+        teachers.put(Nat.toText(updated_teacher.id), updated_teacher);
+        return "Teacher updated";
+      };
+    };
+  };
+
+  // public function to delete a teacher by id
+  public func delete_teacher(id: Nat) : async Text {
+    switch (teachers.get(Nat.toText(id))) {
+      case (null) {
+        Debug.print("Teacher not found");
+        return "Teacher not found"; };
+      case (_) {
+        ignore teachers.remove(Nat.toText(id));
+        return "Teacher deleted"; };
+    };
+  };
+
 };
