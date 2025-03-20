@@ -1,35 +1,35 @@
 module{
-    type Student = {
+    public type Student = {
         id: Nat;
         last_name: Text;
         first_name: Text;
     };
 
-    type Teacher = {
+    public type Teacher = {
         id: Nat;
         last_name: Text;
         first_name: Text;
     };
 
-    type Course = {
+    public type Course = {
         id: Nat;
         name: Text;
         teacher: Teacher;
     };
 
-    type Enrollment = {
+    public type Enrollment = {
         id: Nat;
         student: Student;
         course: Course;
     };
-    type Certificate = {
+    public type Certificate = {
         id: Nat;
         student: Student;
         course: Course;
         date: Date;
     };
 
-    type Date = {
+    public type Date = {
         year: Nat;
         month: Nat;
         day: Nat;
