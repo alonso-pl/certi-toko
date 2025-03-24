@@ -4,7 +4,7 @@ import Text "mo:base/Text";
 import Nat "mo:base/Nat";
 import Debug "mo:base/Debug";
 import Array "mo:base/Array";
-actor {
+actor {   
   
   let students = HashMap.HashMap<Text, Types.Student>(0, Text.equal, Text.hash);
   let teachers = HashMap.HashMap<Text, Types.Teacher>(0, Text.equal, Text.hash);
